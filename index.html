@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERISURE — Controle de Licenças</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--navy:#0f1729;--navy2:#1a2540;--accent:#3b82f6;--green:#22c55e;--red:#ef4444;--orange:#f97316;--purple:#a855f7;--bg:#f4f6fb;--card:#fff;--border:#e2e8f0;--border2:#cbd5e1;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--font:'Inter',sans-serif;--mono:'DM Mono',monospace;--r:10px;--r2:14px;--shadow:0 1px 4px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+#login-screen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(59,130,246,.12),transparent 60%),radial-gradient(ellipse at 70% 20%,rgba(168,85,247,.08),transparent 50%)}
+.login-card{position:relative;background:var(--navy2);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:44px 40px;width:380px;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.login-brand{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.l-icon{width:40px;height:40px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.login-brand h1{font-size:20px;font-weight:700;color:#fff}
+.login-brand p{font-size:11px;color:var(--text3);margin-top:1px}
+.lf-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.lf-inp{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:11px 14px;color:#fff;font-size:14px;font-family:var(--font);transition:border-color .2s}
+.lf-inp:focus{outline:none;border-color:var(--accent)}
+.lf-inp::placeholder{color:rgba(255,255,255,.25)}
+.lf-grp{margin-bottom:16px}
+.btn-login{width:100%;margin-top:8px;padding:13px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.btn-login:hover:not(:disabled){background:#2563eb}
+.btn-login:disabled{opacity:.6;cursor:not-allowed}
+.login-err{color:#f87171;font-size:12px;text-align:center;margin-top:10px;display:none}
+#app{display:none;min-height:100vh}
+.topbar{background:var(--navy);color:#fff;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;z-index:100}
+.tb-brand{display:flex;align-items:center;gap:10px}
+.tb-icon{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.tb-brand span{font-size:15px;font-weight:700}
+.tb-brand small{font-size:11px;color:var(--text3);margin-left:6px}
+.tb-right{display:flex;align-items:center;gap:12px}
+.sbadge{font-size:11px;padding:4px 10px;border-radius:99px;font-weight:500}
+.sok{background:rgba(34,197,94,.15);color:#4ade80}
+.sing{background:rgba(234,179,8,.12);color:#fde047}
+.serr{background:rgba(239,68,68,.12);color:#fca5a5}
+.tb-user{font-size:12px;color:var(--text3)}
+.tb-user strong{color:#e2e8f0;font-weight:500}
+.btn-ico{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-family:var(--font)}
+.btn-ico:hover{background:rgba(255,255,255,.13)}
+.nav-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;display:flex;overflow-x:auto}
+.nav-tab{padding:14px 20px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border-bottom:2.5px solid transparent;margin-bottom:-1px;white-space:nowrap;font-family:var(--font);display:flex;align-items:center;gap:6px}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.nav-tab:hover:not(.active){color:var(--text);background:var(--bg)}
+.bcnt{background:rgba(59,130,246,.12);color:var(--accent);font-size:10px;padding:1px 6px;border-radius:99px;font-weight:600}
+.content{padding:22px 24px;max-width:1500px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:20px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%}
+.cb::before{background:var(--accent)}.cg::before{background:var(--green)}.cr::before{background:var(--red)}.co::before{background:var(--orange)}.cgr::before{background:var(--text3)}.cp::before{background:var(--purple)}
+.sl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sv{font-size:26px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.alrt{border-radius:var(--r);padding:11px 15px;margin-bottom:12px;font-size:13px;display:flex;align-items:flex-start;gap:8px;border:1px solid}
+.ar{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+.ao{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+.alrt strong{font-weight:600}
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.tbs{flex:1;min-width:200px;padding:9px 13px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;font-family:var(--font);background:var(--card)}
+.tbs:focus{outline:none;border-color:var(--accent)}
+.tbsel{padding:9px 13px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;font-family:var(--font);background:var(--card);cursor:pointer}
+.btn{padding:9px 16px;border-radius:var(--r);border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font);display:inline-flex;align-items:center;gap:5px}
+.btp{background:var(--accent);color:#fff}.btp:hover{background:#2563eb}
+.bts{background:#16a34a;color:#fff}.bts:hover{background:#15803d}
+.bto{background:var(--card);color:var(--text2);border:1.5px solid var(--border)}.bto:hover{border-color:var(--border2)}
+.btsec{background:var(--bg);color:var(--text2);border:1.5px solid var(--border)}
+.tw{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);overflow:auto;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;min-width:960px}
+thead tr{background:var(--navy)}
+thead th{color:rgba(255,255,255,.85);padding:11px 13px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:hover{background:#f8faff}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:10px 13px;font-size:13px;vertical-align:middle}
+.rex{background:#fff5f5}.rwarn{background:#fffbf0}
+.bdg{display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap}
+.bgg{background:#dcfce7;color:#15803d}.bgr{background:#fee2e2;color:#b91c1c}.bgo{background:#ffedd5;color:#c2410c}.bgb{background:#dbeafe;color:#1d4ed8}.bggr{background:#f1f5f9;color:#475569}.bgp{background:#f3e8ff;color:#7e22ce}
+.eok{color:var(--green);font-weight:600;font-size:12px}.ewrn{color:var(--orange);font-weight:600;font-size:12px}.edng{color:var(--red);font-weight:700;font-size:12px}.ena{color:var(--text3);font-size:12px}
+.ba{padding:4px 9px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font)}
+.be{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}.be:hover{background:#dbeafe}
+.bd{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}.bd:hover{background:#fee2e2}
+.pag{display:flex;gap:5px;align-items:center;margin-top:14px;justify-content:flex-end;flex-wrap:wrap}
+.pi{font-size:12px;color:var(--text3);margin-right:6px}
+.pb{padding:5px 11px;border:1px solid var(--border);border-radius:6px;background:var(--card);cursor:pointer;font-size:12px;font-family:var(--font)}
+.pb.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.nd{text-align:center;padding:48px;color:var(--text3)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.ov.open{display:flex}
+.modal{background:var(--card);border-radius:var(--r2);width:680px;max-width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.mhd{background:var(--navy);color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;border-radius:var(--r2) var(--r2) 0 0;position:sticky;top:0}
+.mhd h2{font-size:15px;font-weight:600}
+.mx{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:2px 6px;border-radius:5px}
+.mx:hover{color:#fff}
+.mbd{padding:22px}
+.mft{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--card);border-radius:0 0 var(--r2) var(--r2)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.fr.fl{grid-template-columns:1fr}
+.ff label{display:block;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.ff input,.ff select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font);color:var(--text);background:var(--card)}
+.ff input:focus,.ff select:focus{outline:none;border-color:var(--accent)}
+.cg2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px;box-shadow:var(--shadow)}
+.cc h3{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
+.cw{position:relative;height:220px}
+.ug{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:16px}
+.uc{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+.uav{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.aadm{background:#dbeafe;color:#1d4ed8}.ausr{background:#dcfce7;color:#15803d}.avw{background:#f3e8ff;color:#7e22ce}
+.ui h4{font-size:14px;font-weight:600}.ui p{font-size:12px;color:var(--text3);margin-top:2px}
+.ua{margin-left:auto;display:flex;gap:6px}
+.rb{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;margin-top:4px;display:inline-block}
+.radm{background:#dbeafe;color:#1d4ed8}.rusr{background:#dcfce7;color:#15803d}.rvw{background:#f3e8ff;color:#7e22ce}
+.perm-info{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--text2)}
+.perm-info strong{color:var(--text)}
+@media(max-width:700px){.fr{grid-template-columns:1fr}.cg2{grid-template-columns:1fr}.sg{grid-template-columns:1fr 1fr}.content{padding:14px}}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-bg"></div>
+  <div class="login-card">
+    <div class="login-brand"><div class="l-icon">🔒</div><div><h1>VERISURE</h1><p>Sistema de Controle de Licenças</p></div></div>
+    <div id="fb-msg" style="padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:16px;background:rgba(234,179,8,.12);color:#fde047;border:1px solid rgba(234,179,8,.2)">🔄 Conectando ao Firebase...</div>
+    <div class="lf-grp"><div class="lf-lbl">Usuário</div><input class="lf-inp" id="lu" placeholder="seu usuário" autocomplete="username"></div>
+    <div class="lf-grp"><div class="lf-lbl">Senha</div><input class="lf-inp" type="password" id="lp" placeholder="••••••••"></div>
+    <button class="btn-login" id="btn-login" disabled>Aguarde...</button>
+    <div class="login-err" id="lerr">Usuário ou senha incorretos.</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="tb-brand"><div class="tb-icon">🔒</div><span>VERISURE</span><small>Controle de Licenças</small></div>
+    <div class="tb-right">
+      <span id="sbadge" class="sbadge sing">🔄 Conectando...</span>
+      <div class="tb-user">Olá, <strong id="uname"></strong></div>
+      <button class="btn-ico" id="btn-users-top" style="display:none">👥 Usuários</button>
+      <button class="btn-ico" id="btn-logout">Sair</button>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-panel="dash" id="tab-dash">📊 Dashboard</button>
+    <button class="nav-tab" data-panel="ex" id="tab-ex">⚔️ Exército (CR) <span class="bcnt" id="cnt-ex">0</span></button>
+    <button class="nav-tab" data-panel="pc" id="tab-pc">👮 Polícia Civil <span class="bcnt" id="cnt-pc">0</span></button>
+    <button class="nav-tab" data-panel="users" id="tab-users" style="display:none">👥 Usuários</button>
+  </div>
+  <div class="content">
+
+    <div class="panel active" id="panel-dash">
+      <div id="dash-alerts"></div>
+      <div id="dash-stats" class="sg"></div>
+      <div class="cg2">
+        <div class="cc"><h3>Status dos CRs — Exército</h3><div class="cw"><canvas id="ch1"></canvas></div></div>
+        <div class="cc"><h3>Licenças por Estado — Pol. Civil</h3><div class="cw"><canvas id="ch2"></canvas></div></div>
+      </div>
+      <div class="cg2">
+        <div class="cc"><h3>Alvarás vs Vistorias</h3><div class="cw"><canvas id="ch3"></canvas></div></div>
+        <div class="cc"><h3>Vencimentos CRs por Ano</h3><div class="cw"><canvas id="ch4"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-ex">
+      <div id="alerts-ex"></div><div id="stats-ex" class="sg"></div>
+      <div class="toolbar">
+        <input class="tbs" type="text" placeholder="Buscar pasta, filial, cidade, status..." id="srch-ex">
+        <select class="tbsel" id="fst-ex"><option value="">Todos os status</option><option value="valido">CR Válido</option><option value="vencido">Vencido</option><option value="analise">Em Análise</option><option value="indeferido">Indeferido</option><option value="protocolo">Protocolado</option><option value="sem">Sem Solicitação</option></select>
+        <select class="tbsel" id="fest-ex"><option value="">Todos os UFs</option></select>
+        <button class="btn bts" id="btn-new-ex" style="display:none">＋ Novo</button>
+        <button class="btn bto" id="btn-csv-ex">↓ CSV</button>
+      </div>
+      <div class="tw"><table><thead><tr><th>Pasta</th><th>Filial</th><th>CNPJ</th><th>Nº CR</th><th>Cidade</th><th>UF</th><th>Protocolo</th><th>Status</th><th>Região Militar</th><th>Vencimento</th><th>Ações</th></tr></thead><tbody id="tbody-ex"></tbody></table></div>
+      <div class="pag" id="pag-ex"></div>
+    </div>
+
+    <div class="panel" id="panel-pc">
+      <div id="alerts-pc"></div><div id="stats-pc" class="sg"></div>
+      <div class="toolbar">
+        <input class="tbs" type="text" placeholder="Buscar pasta, cidade, licença, operação..." id="srch-pc">
+        <select class="tbsel" id="flic-pc"><option value="">Todas as licenças</option><option value="ALVARÁ">Alvará</option><option value="VISTORIA">Vistoria</option></select>
+        <select class="tbsel" id="fuf-pc"><option value="">Todos os UFs</option></select>
+        <button class="btn bts" id="btn-new-pc" style="display:none">＋ Novo</button>
+        <button class="btn bto" id="btn-csv-pc">↓ CSV</button>
+      </div>
+      <div class="tw"><table><thead><tr><th>Pasta</th><th>CNPJ</th><th>Cidade</th><th>UF</th><th>Licença</th><th>Para</th><th>Operação</th><th>Número</th><th>Expedição</th><th>Validade</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tbody-pc"></tbody></table></div>
+      <div class="pag" id="pag-pc"></div>
+    </div>
+
+    <div class="panel" id="panel-users">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div><h2 style="font-size:16px;font-weight:700">Gerenciar Usuários</h2><p style="font-size:13px;color:var(--text3);margin-top:3px">Somente o Administrador pode gerenciar usuários</p></div>
+        <button class="btn bts" id="btn-new-user">＋ Novo Usuário</button>
+      </div>
+      <div class="perm-info">
+        <strong>Perfis de acesso:</strong>
+        🔵 <strong>Administrador</strong> — acesso total (incluindo esta tela) &nbsp;|&nbsp;
+        🟢 <strong>Usuário</strong> — visualizar, adicionar e editar registros &nbsp;|&nbsp;
+        🟣 <strong>Visualizador</strong> — somente visualizar e exportar CSV
+      </div>
+      <div class="ug" id="users-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EXÉRCITO -->
+<div class="ov" id="ov-ex">
+  <div class="modal">
+    <div class="mhd"><h2 id="ex-title">Registro — Exército</h2><button class="mx" data-close="ex">✕</button></div>
+    <div class="mbd">
+      <div class="fr"><div class="ff"><label>Pasta</label><input id="ex-pasta"></div><div class="ff"><label>Filial</label><input id="ex-filial"></div></div>
+      <div class="fr fl"><div class="ff"><label>Empresa</label><input id="ex-empresa"></div></div>
+      <div class="fr"><div class="ff"><label>CNPJ</label><input id="ex-cnpj"></div><div class="ff"><label>Nº do CR</label><input id="ex-cr"></div></div>
+      <div class="fr"><div class="ff"><label>Cidade</label><input id="ex-cidade"></div><div class="ff"><label>Estado (UF)</label><input id="ex-estado" maxlength="2"></div></div>
+      <div class="fr"><div class="ff"><label>Protocolo</label><input id="ex-proto"></div><div class="ff"><label>Região Militar</label><input id="ex-regiao"></div></div>
+      <div class="fr"><div class="ff"><label>Status / Descrição</label><input id="ex-status"></div><div class="ff"><label>Data de Vencimento</label><input id="ex-venc" type="date"></div></div>
+    </div>
+    <div class="mft"><button class="btn btsec" data-close="ex">Cancelar</button><button class="btn btp" id="btn-save-ex">💾 Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL POLÍCIA CIVIL -->
+<div class="ov" id="ov-pc">
+  <div class="modal">
+    <div class="mhd"><h2 id="pc-title">Registro — Polícia Civil</h2><button class="mx" data-close="pc">✕</button></div>
+    <div class="mbd">
+      <div class="fr"><div class="ff"><label>Pasta</label><input id="pc-pasta"></div><div class="ff"><label>CNPJ</label><input id="pc-cnpj"></div></div>
+      <div class="fr fl"><div class="ff"><label>Empresa</label><input id="pc-empresa"></div></div>
+      <div class="fr"><div class="ff"><label>Cidade</label><input id="pc-cidade"></div><div class="ff"><label>UF</label><input id="pc-uf" maxlength="2"></div></div>
+      <div class="fr"><div class="ff"><label>Licença</label><select id="pc-lic"><option>ALVARÁ</option><option>VISTORIA</option></select></div><div class="ff"><label>Para (finalidade)</label><input id="pc-para"></div></div>
+      <div class="fr"><div class="ff"><label>Operação</label><select id="pc-op"><option>RENOVAÇAO</option><option>CONCESSAO INICIAL</option><option>SEGUNDA VIA</option></select></div><div class="ff"><label>Número</label><input id="pc-num"></div></div>
+      <div class="fr"><div class="ff"><label>Protocolo (data)</label><input id="pc-proto" type="date"></div><div class="ff"><label>Expedição</label><input id="pc-exp" type="date"></div></div>
+      <div class="fr fl"><div class="ff"><label>Validade</label><input id="pc-val" type="date"></div></div>
+    </div>
+    <div class="mft"><button class="btn btsec" data-close="pc">Cancelar</button><button class="btn btp" id="btn-save-pc">💾 Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL USUÁRIO -->
+<div class="ov" id="ov-user">
+  <div class="modal" style="max-width:420px">
+    <div class="mhd"><h2 id="user-title">Usuário</h2><button class="mx" data-close="user">✕</button></div>
+    <div class="mbd">
+      <div class="fr fl"><div class="ff"><label>Nome completo</label><input id="u-nome"></div></div>
+      <div class="fr fl"><div class="ff"><label>Login</label><input id="u-login"></div></div>
+      <div class="fr fl"><div class="ff"><label>Senha (deixe em branco para manter)</label><input id="u-senha" type="password"></div></div>
+      <div class="fr fl"><div class="ff"><label>Perfil de acesso</label>
+        <select id="u-role">
+          <option value="admin">Administrador — acesso total</option>
+          <option value="user">Usuário — visualizar, adicionar e editar</option>
+          <option value="view">Visualizador — somente leitura e CSV</option>
+        </select>
+      </div></div>
+    </div>
+    <div class="mft"><button class="btn btsec" data-close="user">Cancelar</button><button class="btn btp" id="btn-save-user">💾 Salvar</button></div>
+  </div>
+</div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getFirestore,collection,doc,setDoc,deleteDoc,onSnapshot,writeBatch,getDocs}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const FB={apiKey:"AIzaSyDF-gEsnk22rwMYCubqpXB6OuVoGlNAZWs",authDomain:"controle-de-licencas-446ad.firebaseapp.com",projectId:"controle-de-licencas-446ad",storageBucket:"controle-de-licencas-446ad.firebasestorage.app",messagingSenderId:"55344748456",appId:"1:55344748456:web:7e35f6571f430de0e7af9d"};
+const db=getFirestore(initializeApp(FB));
+
+const PER=15;
+let EX=[],PC=[],USERS=[],ME=null,pEx=1,pPc=1,dEx=null,dPc=null,dUsr=null,charts={};
+
+// ─── FIREBASE ───
+async function fbSet(col,data){const id=data._id||crypto.randomUUID();const{_id,...r}=data;await setDoc(doc(db,col,id),r);}
+async function fbDel(col,id){await deleteDoc(doc(db,col,id));}
+
+// ─── PERMISSÕES ───
+// admin  → tudo
+// user   → visualizar + adicionar + editar (NÃO excluir, NÃO gerenciar usuários)
+// view   → só visualizar + exportar CSV
+function isAdmin(){return ME&&ME.role==='admin';}
+function canAdd(){return ME&&(ME.role==='admin'||ME.role==='user');}
+function canEdit(){return ME&&(ME.role==='admin'||ME.role==='user');}
+function canDelete(){return ME&&ME.role==='admin';}
+
+// ─── INIT ───
+async function init(){
+  const msg=document.getElementById('fb-msg');
+  const btnL=document.getElementById('btn-login');
+  try{
+    // Garante dados padrão se banco vazio
+    const us=await getDocs(collection(db,'usuarios'));
+    if(us.empty){
+      const b=writeBatch(db);
+      b.set(doc(db,'usuarios','admin'),{login:'admin',senha:'verisure123',nome:'Administrador',role:'admin'});
+      b.set(doc(db,'usuarios','user1'),{login:'user',senha:'verisure456',nome:'Usuário Padrão',role:'user'});
+      await b.commit();
+    }
+    const ex=await getDocs(collection(db,'exercito'));
+    if(ex.empty)await seed();
+
+    // Listener em tempo real para usuários desde o início
+    // Garante que novos usuários criados pelo admin funcionem imediatamente
+    let primeiraVez=true;
+    onSnapshot(collection(db,'usuarios'),s=>{
+      USERS=s.docs.map(d=>({...d.data(),_id:d.id}));
+      if(ap('users'))rUsers();
+      if(primeiraVez){
+        primeiraVez=false;
+        msg.style.cssText='padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:16px;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.2)';
+        msg.textContent='✅ Firebase conectado! ('+USERS.length+' usuário(s))';
+        setTimeout(()=>msg.style.display='none',2500);
+        btnL.disabled=false;btnL.textContent='Entrar';
+        setSB('sok','🔥 Firebase');
+      }
+    });
+
+    onSnapshot(collection(db,'exercito'),s=>{EX=s.docs.map(d=>({...d.data(),_id:d.id}));g('cnt-ex').textContent=EX.length;rEx();if(ap('dash'))rCharts();pFilt();});
+    onSnapshot(collection(db,'policia_civil'),s=>{PC=s.docs.map(d=>({...d.data(),_id:d.id}));g('cnt-pc').textContent=PC.length;rPc();if(ap('dash'))rCharts();pFilt();});
+
+  }catch(e){
+    msg.style.cssText='padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:16px;background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.2)';
+    msg.textContent='❌ Erro Firebase: '+e.message+' — Verifique as regras do Firestore e o domínio autorizado.';
+    btnL.disabled=false;btnL.textContent='Entrar';
+    setSB('serr','❌ Sem conexão');console.error(e);
+  }
+}
+
+// ─── UTILS ───
+const g=id=>document.getElementById(id);
+const v=id=>g(id).value.trim();
+const ap=p=>g('panel-'+p).classList.contains('active');
+function setSB(cls,txt){const el=g('sbadge');el.className='sbadge '+cls;el.textContent=txt;}
+function dU(s){if(!s)return null;const d=new Date(s);if(isNaN(d))return null;const t=new Date();t.setHours(0,0,0,0);return Math.floor((d-t)/86400000);}
+function fD(s){if(!s)return'—';const d=new Date(s);return isNaN(d)?s:d.toLocaleDateString('pt-BR');}
+function expT(s){const d=dU(s);if(d===null)return'<span class="ena">—</span>';if(d<0)return`<span class="edng">🔴 Vencido há ${Math.abs(d)}d</span>`;if(d<=30)return`<span class="edng">🔴 ${d}d</span>`;if(d<=90)return`<span class="ewrn">🟡 ${d}d</span>`;return`<span class="eok">🟢 ${d}d</span>`;}
+function rCls(s){const d=dU(s);return d===null?'':d<0?'rex':d<=90?'rwarn':'';}
+function exB(st){if(!st)return'<span class="bdg bggr">—</span>';const u=st.toUpperCase();if(u.includes('VÁLIDO')||u.includes('VALIDO'))return'<span class="bdg bgg">✔ CR Válido</span>';if(u.includes('INDEFERIDO'))return'<span class="bdg bgr">✖ Indeferido</span>';if(u.includes('ANÁLISE')||u.includes('ANALISE'))return'<span class="bdg bgb">⏳ Em Análise</span>';if(u.includes('FASE')||u.includes('PROTOCOLADO'))return'<span class="bdg bgo">📋 Protocolado</span>';if(u.includes('SEM SOLICIT'))return'<span class="bdg bggr">— Sem Solic.</span>';return`<span class="bdg bgp">${st.substring(0,18)}</span>`;}
+function pcB(r){if(!r.validade)return'<span class="bdg bggr">S/ Data</span>';const d=dU(r.validade);if(d===null)return'<span class="bdg bggr">S/ Data</span>';if(d<0)return'<span class="bdg bgr">Vencido</span>';if(d<=90)return'<span class="bdg bgo">A vencer</span>';return'<span class="bdg bgg">Vigente</span>';}
+
+// ─── AUTH ───
+function doLogin(){
+  const u=v('lu'),p=v('lp');
+  const found=USERS.find(x=>x.login===u&&x.senha===p);
+  if(found){
+    ME=found;
+    g('login-screen').style.display='none';
+    g('app').style.display='block';
+    g('uname').textContent=found.nome;
+    // Mostrar/ocultar elementos conforme perfil
+    const adm=isAdmin();
+    const add=canAdd();
+    g('tab-users').style.display=adm?'':'none';
+    g('btn-users-top').style.display=adm?'':'none';
+    g('btn-new-ex').style.display=add?'':'none';
+    g('btn-new-pc').style.display=add?'':'none';
+    rEx();rPc();
+  }else{
+    g('lerr').style.display='block';
+  }
+}
+function doLogout(){ME=null;g('login-screen').style.display='flex';g('app').style.display='none';g('lu').value='';g('lp').value='';g('lerr').style.display='none';}
+
+// ─── EVENTS ───
+g('btn-login').addEventListener('click',doLogin);
+g('btn-logout').addEventListener('click',doLogout);
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&g('login-screen').style.display!=='none')doLogin();});
+document.querySelectorAll('.nav-tab').forEach(b=>b.addEventListener('click',()=>showP(b.dataset.panel)));
+g('btn-users-top').addEventListener('click',()=>showP('users'));
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>closeOv(b.dataset.close)));
+document.querySelectorAll('.ov').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+g('srch-ex').addEventListener('input',()=>{pEx=1;rEx();});
+g('fst-ex').addEventListener('change',()=>{pEx=1;rEx();});
+g('fest-ex').addEventListener('change',()=>{pEx=1;rEx();});
+g('srch-pc').addEventListener('input',()=>{pPc=1;rPc();});
+g('flic-pc').addEventListener('change',()=>{pPc=1;rPc();});
+g('fuf-pc').addEventListener('change',()=>{pPc=1;rPc();});
+g('btn-new-ex').addEventListener('click',()=>openEx(-1));
+g('btn-csv-ex').addEventListener('click',()=>expCSV('ex'));
+g('btn-new-pc').addEventListener('click',()=>openPc(-1));
+g('btn-csv-pc').addEventListener('click',()=>expCSV('pc'));
+g('btn-new-user').addEventListener('click',()=>openUser(-1));
+g('btn-save-ex').addEventListener('click',saveEx);
+g('btn-save-pc').addEventListener('click',savePc);
+g('btn-save-user').addEventListener('click',saveUser);
+// delegação para botões nas linhas
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-action]');if(!t)return;
+  const a=t.dataset.action,id=t.dataset.id,idx=parseInt(t.dataset.idx);
+  if(a==='edit-ex')openEx(idx);
+  if(a==='del-ex')delEx(id);
+  if(a==='edit-pc')openPc(idx);
+  if(a==='del-pc')delPc(id);
+  if(a==='edit-user')openUser(idx);
+  if(a==='del-user')delUser(id,t.dataset.login);
+});
+
+// ─── PAINEL ───
+function showP(p){
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  g('panel-'+p).classList.add('active');
+  g('tab-'+p).classList.add('active');
+  if(p==='dash')rCharts();
+  if(p==='users')rUsers();
+}
+function openOv(id){g('ov-'+id).classList.add('open');}
+function closeOv(id){g('ov-'+id).classList.remove('open');}
+
+// ─── FILTROS ───
+function pFilt(){
+  const es=[...new Set(EX.map(r=>r.estado).filter(Boolean))].sort();
+  const se=g('fest-ex');const sv=se.value;se.innerHTML='<option value="">Todos os UFs</option>';es.forEach(e=>se.innerHTML+=`<option${e===sv?' selected':''}>${e}</option>`);
+  const us=[...new Set(PC.map(r=>r.uf).filter(Boolean))].sort();
+  const su=g('fuf-pc');const suv=su.value;su.innerHTML='<option value="">Todos os UFs</option>';us.forEach(u=>su.innerHTML+=`<option${u===suv?' selected':''}>${u}</option>`);
+}
+
+// ─── RENDER EXÉRCITO ───
+function fEx(){
+  const q=v('srch-ex').toLowerCase(),fs=g('fst-ex').value,fe=g('fest-ex').value;
+  return EX.filter(r=>{
+    const txt=`${r.pasta} ${r.filial} ${r.cidade} ${r.status} ${r.cr}`.toLowerCase();
+    if(q&&!txt.includes(q))return false;if(fe&&r.estado!==fe)return false;
+    if(fs){const u=(r.status||'').toUpperCase();
+      if(fs==='valido'&&!u.includes('VÁLIDO')&&!u.includes('VALIDO'))return false;
+      if(fs==='vencido'){const d=dU(r.vencimento);if(d===null||d>=0)return false;}
+      if(fs==='analise'&&!u.includes('ANÁLISE')&&!u.includes('ANALISE'))return false;
+      if(fs==='indeferido'&&!u.includes('INDEFERIDO'))return false;
+      if(fs==='protocolo'&&!u.includes('FASE')&&!u.includes('PROTOCOLADO'))return false;
+      if(fs==='sem'&&!u.includes('SEM SOLICIT'))return false;}
+    return true;});
+}
+function rEx(){const data=fEx();_rEx(data);}
+function _rEx(data){
+  const val=data.filter(r=>{const u=(r.status||'').toUpperCase();return u.includes('VÁLIDO')||u.includes('VALIDO');}).length;
+  const venc=data.filter(r=>{const d=dU(r.vencimento);return d!==null&&d<0;}).length;
+  const warn=data.filter(r=>{const d=dU(r.vencimento);return d!==null&&d>=0&&d<=90;}).length;
+  const pend=data.filter(r=>{const u=(r.status||'').toUpperCase();return u.includes('FASE')||u.includes('PROTOCOLADO')||u.includes('ANÁLISE')||u.includes('ANALISE');}).length;
+  const indef=data.filter(r=>(r.status||'').toUpperCase().includes('INDEFERIDO')).length;
+  g('stats-ex').innerHTML=`<div class="sc cb"><div class="sl">Total</div><div class="sv">${data.length}</div></div><div class="sc cg"><div class="sl">CR Válido</div><div class="sv">${val}</div></div><div class="sc cr"><div class="sl">Vencidos</div><div class="sv">${venc}</div></div><div class="sc co"><div class="sl">A Vencer 90d</div><div class="sv">${warn}</div></div><div class="sc cgr"><div class="sl">Em Andamento</div><div class="sv">${pend}</div></div><div class="sc cp"><div class="sl">Indeferidos</div><div class="sv">${indef}</div></div>`;
+  const ev=data.filter(r=>{const d=dU(r.vencimento);return d!==null&&d<0;});
+  const ew=data.filter(r=>{const d=dU(r.vencimento);return d!==null&&d>=0&&d<=90;});
+  let ah='';
+  if(ev.length)ah+=`<div class="alrt ar">🔴<div><strong>${ev.length} CR(s) VENCIDO(S):</strong> ${ev.map(r=>`${r.cidade} (Pasta ${r.pasta||'—'})`).join(', ')}</div></div>`;
+  if(ew.length)ah+=`<div class="alrt ao">🟡<div><strong>${ew.length} CR(s) vencendo em até 90 dias:</strong> ${ew.map(r=>`${r.cidade} — ${Math.max(0,dU(r.vencimento))}d`).join(' | ')}</div></div>`;
+  g('alerts-ex').innerHTML=ah;
+  const s=(pEx-1)*PER,page=data.slice(s,s+PER);
+  const tb=g('tbody-ex');
+  if(!page.length){tb.innerHTML='<tr><td colspan="11" class="nd">Nenhum registro encontrado.</td></tr>';rPag('ex',0,s);return;}
+  tb.innerHTML=page.map((r,i)=>{
+    const ce=canEdit(),cd=canDelete();
+    let acoes='—';
+    if(ce||cd){
+      acoes='';
+      if(ce)acoes+=`<button class="ba be" data-action="edit-ex" data-idx="${s+i}">✏️</button> `;
+      if(cd)acoes+=`<button class="ba bd" data-action="del-ex" data-id="${r._id}">🗑</button>`;
+    }
+    return `<tr class="${rCls(r.vencimento)}"><td><span style="font-family:var(--mono);font-size:12px">${r.pasta||'—'}</span></td><td>${r.filial||'—'}</td><td style="font-size:11px;color:var(--text3)">${r.cnpj||'—'}</td><td><span style="font-family:var(--mono);font-size:12px">${r.cr||'—'}</span></td><td>${r.cidade||'—'}</td><td><span class="bdg bggr">${r.estado||'—'}</span></td><td style="font-size:11px;color:var(--text3)">${r.protocolo||'—'}</td><td>${exB(r.status)}<div style="font-size:10px;color:var(--text3);margin-top:2px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.status||''}">${r.status||''}</div></td><td style="font-size:11px">${r.regiao||'—'}</td><td>${expT(r.vencimento)}<div style="font-size:10px;color:var(--text3);margin-top:1px">${fD(r.vencimento)}</div></td><td style="white-space:nowrap">${acoes}</td></tr>`;
+  }).join('');
+  rPag('ex',data.length,s);
+}
+
+// ─── RENDER POLÍCIA CIVIL ───
+function fPc(){
+  const q=v('srch-pc').toLowerCase(),fl=g('flic-pc').value,fu=g('fuf-pc').value;
+  return PC.filter(r=>{const txt=`${r.pasta} ${r.licenca} ${r.para} ${r.operacao} ${r.cidade} ${r.numero}`.toLowerCase();if(q&&!txt.includes(q))return false;if(fl&&r.licenca!==fl)return false;if(fu&&r.uf!==fu)return false;return true;});
+}
+function rPc(){const data=fPc();_rPc(data);}
+function _rPc(data){
+  const alv=data.filter(r=>r.licenca==='ALVARÁ').length,vis=data.filter(r=>r.licenca==='VISTORIA').length;
+  const venc=data.filter(r=>{const d=dU(r.validade);return d!==null&&d<0;}).length;
+  const warn=data.filter(r=>{const d=dU(r.validade);return d!==null&&d>=0&&d<=90;}).length;
+  g('stats-pc').innerHTML=`<div class="sc cb"><div class="sl">Total</div><div class="sv">${data.length}</div></div><div class="sc cp"><div class="sl">Alvarás</div><div class="sv">${alv}</div></div><div class="sc cg"><div class="sl">Vistorias</div><div class="sv">${vis}</div></div><div class="sc cr"><div class="sl">Vencidos</div><div class="sv">${venc}</div></div><div class="sc co"><div class="sl">A Vencer 90d</div><div class="sv">${warn}</div></div><div class="sc cgr"><div class="sl">Sem Data</div><div class="sv">${data.filter(r=>!r.validade).length}</div></div>`;
+  const ev=data.filter(r=>{const d=dU(r.validade);return d!==null&&d<0;});
+  const ew=data.filter(r=>{const d=dU(r.validade);return d!==null&&d>=0&&d<=90;});
+  let ah='';
+  if(ev.length)ah+=`<div class="alrt ar">🔴<div><strong>${ev.length} licença(s) VENCIDA(S):</strong> ${ev.map(r=>`${r.cidade} — ${r.licenca}`).join(', ')}</div></div>`;
+  if(ew.length)ah+=`<div class="alrt ao">🟡<div><strong>${ew.length} licença(s) vencendo em até 90 dias:</strong> ${ew.map(r=>`${r.cidade} (${r.licenca}) — ${Math.max(0,dU(r.validade))}d`).join(' | ')}</div></div>`;
+  g('alerts-pc').innerHTML=ah;
+  const s=(pPc-1)*PER,page=data.slice(s,s+PER);
+  const tb=g('tbody-pc');
+  if(!page.length){tb.innerHTML='<tr><td colspan="12" class="nd">Nenhum registro encontrado.</td></tr>';rPag('pc',0,s);return;}
+  tb.innerHTML=page.map((r,i)=>{
+    const ce=canEdit(),cd=canDelete();
+    let acoes='—';
+    if(ce||cd){
+      acoes='';
+      if(ce)acoes+=`<button class="ba be" data-action="edit-pc" data-idx="${s+i}">✏️</button> `;
+      if(cd)acoes+=`<button class="ba bd" data-action="del-pc" data-id="${r._id}">🗑</button>`;
+    }
+    return `<tr class="${rCls(r.validade)}"><td><span style="font-family:var(--mono);font-size:12px">${r.pasta||'—'}</span></td><td style="font-size:11px;color:var(--text3)">${r.cnpj||'—'}</td><td>${r.cidade||'—'}</td><td><span class="bdg bggr">${r.uf||'—'}</span></td><td><span class="bdg ${r.licenca==='ALVARÁ'?'bgp':'bgb'}">${r.licenca||'—'}</span></td><td style="font-size:11px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.para||''}">${r.para||'—'}</td><td style="font-size:11px">${r.operacao||'—'}</td><td style="font-family:var(--mono);font-size:12px">${r.numero||'—'}</td><td style="font-size:11px">${fD(r.expedicao)}</td><td>${fD(r.validade)}</td><td>${pcB(r)}<div style="margin-top:2px">${expT(r.validade)}</div></td><td style="white-space:nowrap">${acoes}</td></tr>`;
+  }).join('');
+  rPag('pc',data.length,s);
+}
+
+// ─── PAGINAÇÃO ───
+function rPag(tab,total,start){
+  const pages=Math.ceil(total/PER),el=g('pag-'+tab),cur=tab==='ex'?pEx:pPc;
+  if(pages<=1){el.innerHTML='';return;}
+  let h=`<span class="pi">Mostrando ${start+1}–${Math.min(start+PER,total)} de ${total}</span>`;
+  for(let i=1;i<=pages;i++)h+=`<button class="pb${i===cur?' active':''}" data-tab="${tab}" data-pg="${i}">${i}</button>`;
+  el.innerHTML=h;
+  el.querySelectorAll('.pb').forEach(b=>b.addEventListener('click',()=>{if(tab==='ex'){pEx=parseInt(b.dataset.pg);rEx();}else{pPc=parseInt(b.dataset.pg);rPc();}}));
+}
+
+// ─── MODAL EXÉRCITO ───
+function openEx(i){
+  if(!canEdit())return;dEx=null;
+  const data=fEx();const r=i>=0?data[i]:{};if(i>=0)dEx=r._id;
+  g('ex-title').textContent=i>=0?'Editar — Exército':'Novo Registro — Exército';
+  g('ex-pasta').value=r.pasta||'';g('ex-filial').value=r.filial||'';g('ex-empresa').value=r.empresa||'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A';g('ex-cnpj').value=r.cnpj||'';g('ex-cr').value=r.cr||'';g('ex-cidade').value=r.cidade||'';g('ex-estado').value=r.estado||'';g('ex-proto').value=r.protocolo||'';g('ex-regiao').value=r.regiao||'';g('ex-status').value=r.status||'';g('ex-venc').value=r.vencimento||'';
+  openOv('ex');
+}
+async function saveEx(){
+  if(!canEdit())return;
+  const r={pasta:v('ex-pasta'),filial:v('ex-filial'),empresa:v('ex-empresa'),cnpj:v('ex-cnpj'),cr:v('ex-cr'),cidade:v('ex-cidade'),estado:v('ex-estado').toUpperCase(),protocolo:v('ex-proto'),regiao:v('ex-regiao'),status:v('ex-status'),vencimento:v('ex-venc')};
+  if(dEx)r._id=dEx;
+  await fbSet('exercito',r);closeOv('ex');
+}
+async function delEx(id){
+  if(!canDelete()){alert('Sem permissão para excluir.');return;}
+  if(!confirm('Confirmar exclusão?'))return;
+  await fbDel('exercito',id);
+}
+
+// ─── MODAL POLÍCIA CIVIL ───
+function openPc(i){
+  if(!canEdit())return;dPc=null;
+  const data=fPc();const r=i>=0?data[i]:{};if(i>=0)dPc=r._id;
+  g('pc-title').textContent=i>=0?'Editar — Polícia Civil':'Novo Registro — Pol. Civil';
+  g('pc-pasta').value=r.pasta||'';g('pc-cnpj').value=r.cnpj||'';g('pc-empresa').value=r.empresa||'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A';g('pc-cidade').value=r.cidade||'';g('pc-uf').value=r.uf||'';g('pc-lic').value=r.licenca||'ALVARÁ';g('pc-para').value=r.para||'';g('pc-op').value=r.operacao||'RENOVAÇAO';g('pc-num').value=r.numero||'';g('pc-proto').value=r.protocolo||'';g('pc-exp').value=r.expedicao||'';g('pc-val').value=r.validade||'';
+  openOv('pc');
+}
+async function savePc(){
+  if(!canEdit())return;
+  const r={pasta:v('pc-pasta'),cnpj:v('pc-cnpj'),empresa:v('pc-empresa'),cidade:v('pc-cidade'),uf:v('pc-uf').toUpperCase(),licenca:g('pc-lic').value,para:v('pc-para'),operacao:g('pc-op').value,numero:v('pc-num'),protocolo:v('pc-proto'),expedicao:v('pc-exp'),validade:v('pc-val')};
+  if(dPc)r._id=dPc;
+  await fbSet('policia_civil',r);closeOv('pc');
+}
+async function delPc(id){
+  if(!canDelete()){alert('Sem permissão para excluir.');return;}
+  if(!confirm('Confirmar exclusão?'))return;
+  await fbDel('policia_civil',id);
+}
+
+// ─── USUÁRIOS ───
+function rUsers(){
+  if(!isAdmin())return;
+  const rl={admin:'Administrador',user:'Usuário',view:'Visualizador'},rc={admin:'radm',user:'rusr',view:'rvw'},ac={admin:'aadm',user:'ausr',view:'avw'};
+  g('users-grid').innerHTML=USERS.map((u,i)=>`<div class="uc"><div class="uav ${ac[u.role]||'ausr'}">${(u.nome||'?').charAt(0).toUpperCase()}</div><div class="ui"><h4>${u.nome}</h4><p>@${u.login}</p><span class="rb ${rc[u.role]||'rusr'}">${rl[u.role]||u.role}</span></div><div class="ua"><button class="ba be" data-action="edit-user" data-idx="${i}">✏️</button>${USERS.length>1?`<button class="ba bd" data-action="del-user" data-id="${u._id}" data-login="${u.login}">🗑</button>`:''}</div></div>`).join('');
+}
+function openUser(i){
+  if(!isAdmin())return;dUsr=null;
+  const u=i>=0?USERS[i]:{};if(i>=0)dUsr=u._id;
+  g('user-title').textContent=i>=0?'Editar Usuário':'Novo Usuário';
+  g('u-nome').value=u.nome||'';g('u-login').value=u.login||'';g('u-senha').value='';g('u-role').value=u.role||'user';
+  openOv('user');
+}
+async function saveUser(){
+  if(!isAdmin())return;
+  const nome=v('u-nome'),login=v('u-login'),senha=v('u-senha'),role=g('u-role').value;
+  if(!nome||!login){alert('Nome e login são obrigatórios.');return;}
+  if(dUsr){const ex=USERS.find(u=>u._id===dUsr);await fbSet('usuarios',{nome,login,role,senha:senha||ex.senha,_id:dUsr});}
+  else{if(!senha){alert('Defina uma senha para o novo usuário.');return;}if(USERS.find(u=>u.login===login)){alert('Este login já existe.');return;}await fbSet('usuarios',{nome,login,senha,role});}
+  closeOv('user');
+}
+async function delUser(id,login){
+  if(!isAdmin())return;
+  if(login===ME.login){alert('Você não pode excluir seu próprio usuário.');return;}
+  if(!confirm('Excluir este usuário?'))return;
+  await fbDel('usuarios',id);
+}
+
+// ─── DASHBOARD ───
+function rDash(){
+  const evEx=EX.filter(r=>{const d=dU(r.vencimento);return d!==null&&d<0;}).length;
+  const ewEx=EX.filter(r=>{const d=dU(r.vencimento);return d!==null&&d>=0&&d<=90;}).length;
+  const evPc=PC.filter(r=>{const d=dU(r.validade);return d!==null&&d<0;}).length;
+  const ewPc=PC.filter(r=>{const d=dU(r.validade);return d!==null&&d>=0&&d<=90;}).length;
+  let h='';
+  if(evEx||evPc)h+=`<div class="alrt ar">🔴<div><strong>Licenças vencidas:</strong> ${evEx} CR(s) Exército${evPc?` · ${evPc} Pol. Civil`:''}</div></div>`;
+  if(ewEx||ewPc)h+=`<div class="alrt ao">🟡<div><strong>Vencendo em até 90 dias:</strong> ${ewEx} CR(s) Exército${ewPc?` · ${ewPc} Pol. Civil`:''}</div></div>`;
+  g('dash-alerts').innerHTML=h;
+  const valEx=EX.filter(r=>{const u=(r.status||'').toUpperCase();return u.includes('VÁLIDO')||u.includes('VALIDO');}).length;
+  g('dash-stats').innerHTML=`<div class="sc cb"><div class="sl">CRs Exército</div><div class="sv">${EX.length}</div></div><div class="sc cp"><div class="sl">Pol. Civil</div><div class="sv">${PC.length}</div></div><div class="sc cg"><div class="sl">CR Válidos</div><div class="sv">${valEx}</div></div><div class="sc cr"><div class="sl">Vencidos Total</div><div class="sv">${evEx+evPc}</div></div><div class="sc co"><div class="sl">A Vencer 90d</div><div class="sv">${ewEx+ewPc}</div></div>`;
+}
+function dC(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function mC(id,type,labels,datasets){
+  dC(id);const ctx=g(id);if(!ctx)return;
+  charts[id]=new Chart(ctx,{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:type==='doughnut'?'right':'top',labels:{font:{size:11},boxWidth:10,padding:12}}},scales:type!=='doughnut'?{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:10}}}}:undefined}});
+}
+function rCharts(){
+  rDash();
+  const sm={};EX.forEach(r=>{let k='Outros';const u=(r.status||'').toUpperCase();if(u.includes('VÁLIDO')||u.includes('VALIDO'))k='CR Válido';else if(u.includes('INDEFERIDO'))k='Indeferido';else if(u.includes('ANÁLISE')||u.includes('ANALISE'))k='Em Análise';else if(u.includes('FASE')||u.includes('PROTOCOLADO'))k='Protocolado';else if(u.includes('SEM SOLICIT'))k='Sem Solic.';sm[k]=(sm[k]||0)+1;});
+  mC('ch1','doughnut',Object.keys(sm),[{data:Object.values(sm),backgroundColor:['#22c55e','#ef4444','#3b82f6','#f97316','#94a3b8','#a855f7'],borderWidth:2,borderColor:'#fff'}]);
+  const um={};PC.forEach(r=>{if(r.uf)um[r.uf]=(um[r.uf]||0)+1;});const ufs=Object.keys(um).sort();
+  mC('ch2','bar',ufs,[{label:'Licenças',data:ufs.map(k=>um[k]),backgroundColor:'#3b82f6',borderRadius:5,borderSkipped:false}]);
+  mC('ch3','doughnut',['Alvarás','Vistorias'],[{data:[PC.filter(r=>r.licenca==='ALVARÁ').length,PC.filter(r=>r.licenca==='VISTORIA').length],backgroundColor:['#a855f7','#3b82f6'],borderWidth:2,borderColor:'#fff'}]);
+  const ym={};EX.forEach(r=>{const y=r.vencimento?r.vencimento.substring(0,4):'S/Data';ym[y]=(ym[y]||0)+1;});const ys=Object.keys(ym).sort();
+  mC('ch4','bar',ys,[{label:'CRs',data:ys.map(k=>ym[k]),backgroundColor:ys.map(k=>k==='S/Data'?'#94a3b8':dU(k+'-12-31')!==null&&dU(k+'-12-31')<0?'#ef4444':'#22c55e'),borderRadius:5,borderSkipped:false}]);
+}
+
+// ─── CSV ───
+function expCSV(tab){
+  let h,rows,fn;
+  if(tab==='ex'){h=['pasta','filial','empresa','cnpj','cr','cidade','estado','protocolo','status','regiao','vencimento'];rows=EX;fn='verisure_exercito.csv';}
+  else{h=['pasta','empresa','cnpj','cidade','uf','licenca','para','operacao','protocolo','numero','expedicao','validade'];rows=PC;fn='verisure_policia_civil.csv';}
+  const csv=[h,...rows.map(r=>h.map(k=>r[k]||''))].map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download=fn;a.click();
+}
+
+// ─── SEED DATA ───
+async function seed(){
+  const b=writeBatch(db);
+  [{pasta:'7805',filial:'910',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0001-38',cr:'384056',cidade:'São Paulo',estado:'SP',protocolo:'',status:'CR VÁLIDO ATÉ 2025 / 2027',regiao:'2ª RM (SÃO PAULO / SP)',vencimento:'2027-12-31'},
+  {pasta:'7928',filial:'120.121.170.172',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0031-53',cr:'1113465',cidade:'São Paulo - Zona Norte',estado:'SP',protocolo:'48832025',status:'CR VÁLIDO ATÉ 25/06/2027',regiao:'2ª RM (SÃO PAULO / SP)',vencimento:'2027-06-25'},
+  {pasta:'7975',filial:'105.130.160',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0009-95',cr:'1113263',cidade:'São Paulo - Zona Sul',estado:'SP',protocolo:'48852025',status:'CR VÁLIDO ATÉ 22/07/2027',regiao:'2ª RM (SÃO PAULO / SP)',vencimento:'2027-07-22'},
+  {pasta:'8000',filial:'150.152.154.155',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0002-19',cr:'238/25',cidade:'Campinas',estado:'SP',protocolo:'810772025',status:'CR VÁLIDO VALIDADE 2025/2027',regiao:'2ª RM (CAMPINAS/ SP)',vencimento:'2027-12-31'},
+  {pasta:'8002',filial:'131.140',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0003-08',cr:'1121623',cidade:'Santos',estado:'SP',protocolo:'49212025',status:'CR VÁLIDO ATÉ 22/07/2027',regiao:'2ª RM (SANTOS / SP)',vencimento:'2027-07-22'},
+  {pasta:'8019',filial:'111.113.115',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0018-86',cr:'1113468',cidade:'São Paulo - Zona Leste',estado:'SP',protocolo:'48812025',status:'CR VÁLIDO ATÉ 25/06/2027',regiao:'2ª RM (SÃO PAULO / SP)',vencimento:'2027-06-25'},
+  {pasta:'8022',filial:'110.112',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0019-67',cr:'1113466',cidade:'São Caetano Do Sul',estado:'SP',protocolo:'48822025',status:'CR VÁLIDO ATÉ 25/06/2027',regiao:'2ª RM (SÃO PAULO / SP)',vencimento:'2027-06-25'},
+  {pasta:'8024',filial:'165.166',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0012-90',cr:'1113971',cidade:'Sorocaba',estado:'SP',protocolo:'486592025',status:'CR VÁLIDO ATÉ 26/06/2027',regiao:'2ª RM (SOROCABA / SP)',vencimento:'2027-06-26'},
+  {pasta:'8035',filial:'175',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0013-71',cr:'1113265',cidade:'São José Dos Campos',estado:'SP',protocolo:'48842025',status:'CR VÁLIDO ATÉ 24/06/2027',regiao:'2ª RM (CAÇAPAVA / SP)',vencimento:'2027-06-24'},
+  {pasta:'8039',filial:'161',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0021-81',cr:'1121628',cidade:'Ribeirão Preto',estado:'SP',protocolo:'49222025',status:'CR VÁLIDO ATÉ 22/07/2027',regiao:'2ª RM (RIBEIRÃO PRETO / SP)',vencimento:'2027-07-22'},
+  {pasta:'8045',filial:'211.220.221',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0007-23',cr:'1108762',cidade:'Rio de Janeiro',estado:'RJ',protocolo:'14502025',status:'CR VÁLIDO ATÉ 09/06/2027',regiao:'1ª RM (RIO DE JANEIRO / RJ)',vencimento:'2027-06-09'},
+  {pasta:'8464',filial:'410.412',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0024-24',cr:'101945418',cidade:'Curitiba',estado:'PR',protocolo:'45387',status:'CR VÁLIDO ATÉ 15/05/2026',regiao:'5ª RM (CURITIBA / PR)',vencimento:'2026-05-15'},
+  {pasta:'8551',filial:'610',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0025-05',cr:'1042088',cidade:'Brasília',estado:'DF',protocolo:'45357',status:'CR VÁLIDO ATÉ 08/08/2026',regiao:'11ª RM (BRASÍLIA / DF)',vencimento:'2026-08-08'},
+  {pasta:'8552',filial:'850',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0057-92',cr:'',cidade:'Fortaleza',estado:'CE',protocolo:'45358',status:'INDEFERIDO NA VISTORIA - LOCAL DE ARMAZENAMENTO (AVCB)',regiao:'10ª RM (FORTALEZA / CE)',vencimento:''},
+  {pasta:'8553',filial:'810.811',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0037-49',cr:'',cidade:'Recife',estado:'PE',protocolo:'45364',status:'EM ANÁLISE',regiao:'7ª RM (RECIFE / PE)',vencimento:''},
+  {pasta:'8554',filial:'710.711',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0038-20',cr:'',cidade:'Salvador',estado:'BA',protocolo:'6922025',status:'PROCESSO PROTOCOLADO 15/05/2025',regiao:'6ª RM (SALVADOR / BA)',vencimento:''},
+  {pasta:'8555',filial:'310.311.312.313',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0029-39',cr:'1032501',cidade:'Belo Horizonte',estado:'MG',protocolo:'45321',status:'CR VÁLIDO ATÉ 26/06/2026',regiao:'4ª RM (BELO HORIZONTE / MG)',vencimento:'2026-06-26'},
+  {pasta:'8556',filial:'340',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0048-00',cr:'1042354',cidade:'Uberlândia',estado:'MG',protocolo:'45322',status:'CR VÁLIDO ATÉ 08/08/2026',regiao:'11ª RM (UBERLÂNDIA / MG)',vencimento:'2026-08-08'},
+  {pasta:'8557',filial:'',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0053-69',cr:'1075854',cidade:'Maringá',estado:'PR',protocolo:'45385',status:'CR VÁLIDO ATÉ 19/02/2027',regiao:'5ª RM (MARINGÁ / PR)',vencimento:'2027-02-19'},
+  {pasta:'8558',filial:'230',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0015-33',cr:'',cidade:'Niterói',estado:'RJ',protocolo:'45419',status:'INDEFERIDO NA VISTORIA - LOCAL DE ARMAZENAMENTO',regiao:'1ª RM (NITEROI / RJ)',vencimento:''},
+  {pasta:'8559',filial:'240',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0017-03',cr:'3003413',cidade:'Cabo Frio',estado:'RJ',protocolo:'3003413',status:'CR VÁLIDO ATÉ 29/09/2027',regiao:'1ª RM (CABO FRIO / RJ)',vencimento:'2027-09-29'},
+  {pasta:'8888',filial:'114',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0060-98',cr:'3004801',cidade:'Mogi Das Cruzes',estado:'SP',protocolo:'',status:'CR VÁLIDO ATÉ 03/11/2027',regiao:'',vencimento:'2027-11-03'},
+  {pasta:'8890',filial:'',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0064-11',cr:'3004786',cidade:'São Paulo',estado:'SP',protocolo:'',status:'CR VÁLIDO ATÉ 03/11/2027',regiao:'',vencimento:'2027-11-03'},
+  {pasta:'8889',filial:'510.511',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0032-34',cr:'',cidade:'Porto Alegre',estado:'RS',protocolo:'10000243',status:'CR VÁLIDO ATÉ 29/12/2028',regiao:'',vencimento:'2028-12-29'},
+  {pasta:'8892',filial:'',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0028-58',cr:'3004535',cidade:'Joinville',estado:'SC',protocolo:'',status:'CR VÁLIDO ATÉ 27/10/2027',regiao:'5ª Região Militar',vencimento:'2027-10-27'},
+  {pasta:'8887',filial:'173',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0051-05',cr:'150542025',cidade:'São José Do Rio Preto',estado:'SP',protocolo:'',status:'Protocolo em fase de finalização',regiao:'2ª Região Militar',vencimento:''},
+  {pasta:'8891',filial:'191',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0056-01',cr:'',cidade:'Americana',estado:'SP',protocolo:'150532025',status:'Protocolo em fase de análise',regiao:'2ª Região Militar',vencimento:''},
+  {pasta:'8893',filial:'480',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0027-77',cr:'',cidade:'Florianópolis',estado:'SC',protocolo:'18312025',status:'Protocolo em fase de análise',regiao:'5ª Região Militar',vencimento:''},
+  {pasta:'',filial:'195',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0068-45',cr:'',cidade:'Jundiaí',estado:'SP',protocolo:'',status:'Sem Solicitação ZV',regiao:'',vencimento:''},
+  {pasta:'',filial:'620',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0034-04',cr:'',cidade:'Goiânia',estado:'GO',protocolo:'',status:'Sem Solicitação ZV',regiao:'',vencimento:''},
+  {pasta:'',filial:'840',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0067-64',cr:'',cidade:'Natal',estado:'RN',protocolo:'',status:'Sem Solicitação ZV',regiao:'',vencimento:''}
+  ].forEach(r=>b.set(doc(collection(db,'exercito')),r));
+  [{pasta:'7805',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0001-38',cidade:'SAO PAULO',uf:'SP',licenca:'ALVARÁ',para:'USO DE ARTEFATOS PIROTECNICOS',operacao:'SEGUNDA VIA',protocolo:'2025-05-19',numero:'1210',expedicao:'2025-01-28',validade:'2025-12-31'},
+  {pasta:'7805',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0001-38',cidade:'SAO PAULO',uf:'SP',licenca:'VISTORIA',para:'',operacao:'RENOVAÇAO',protocolo:'2025-10-29',numero:'1115',expedicao:'2025-11-13',validade:'2027-12-31'},
+  {pasta:'7806',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0001-38',cidade:'SAO PAULO',uf:'SP',licenca:'ALVARÁ',para:'COMERCIO DE ARTEFATOS PIROTECNICOS',operacao:'RENOVAÇAO',protocolo:'2025-01-24',numero:'1210',expedicao:'2025-01-27',validade:'2025-12-31'},
+  {pasta:'7807',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0001-38',cidade:'SAO PAULO',uf:'SP',licenca:'ALVARÁ',para:'IMPORTAÇAO E EXPORTAÇAO',operacao:'SEGUNDA VIA',protocolo:'2025-05-19',numero:'1211',expedicao:'2025-01-28',validade:'2025-12-31'},
+  {pasta:'7808',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0001-38',cidade:'SAO PAULO',uf:'SP',licenca:'ALVARÁ',para:'TRANSPORTE',operacao:'SEGUNDA VIA',protocolo:'2025-05-19',numero:'1212',expedicao:'2025-01-28',validade:'2025-12-31'},
+  {pasta:'7928',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0031-53',cidade:'SAO PAULO',uf:'SP',licenca:'ALVARÁ',para:'COMERCIO DE ARTEFATOS PIROTECNICOS',operacao:'RENOVAÇAO',protocolo:'2025-01-24',numero:'1359',expedicao:'2025-01-29',validade:'2025-12-31'},
+  {pasta:'7928',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0031-53',cidade:'SAO PAULO',uf:'SP',licenca:'VISTORIA',para:'',operacao:'RENOVAÇAO',protocolo:'2024-12-10',numero:'372',expedicao:'2025-01-29',validade:'2027-12-31'},
+  {pasta:'8000',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0002-19',cidade:'CAMPINAS',uf:'SP',licenca:'ALVARÁ',para:'COMERCIO DE ARTEFATOS PIROTECNICOS',operacao:'RENOVAÇAO',protocolo:'2025-01-27',numero:'1076',expedicao:'2025-04-08',validade:'2025-12-31'},
+  {pasta:'8002',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0003-08',cidade:'SANTOS',uf:'SP',licenca:'ALVARÁ',para:'COMERCIO DE ARTEFATOS PIROTECNICOS',operacao:'RENOVAÇAO',protocolo:'2025-01-30',numero:'312',expedicao:'2025-01-30',validade:'2025-12-31'},
+  {pasta:'8039',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0021-81',cidade:'RIBEIRAO PRETO',uf:'SP',licenca:'ALVARÁ',para:'COMERCIO DE ARTEFATOS PIROTECNICOS',operacao:'RENOVAÇAO',protocolo:'2025-02-03',numero:'90',expedicao:'2025-02-05',validade:'2025-12-31'},
+  {pasta:'8045',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0007-23',cidade:'RIO DE JANEIRO',uf:'RJ',licenca:'ALVARÁ',para:'COMERCIO DE ARTEFATOS PIROTECNICOS',operacao:'CONCESSAO INICIAL',protocolo:'',numero:'',expedicao:'',validade:''},
+  {pasta:'8464',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0024-24',cidade:'CURITIBA',uf:'PR',licenca:'ALVARÁ',para:'USO DE ARTEFATOS PIROTECNICOS',operacao:'CONCESSAO INICIAL',protocolo:'',numero:'',expedicao:'',validade:''},
+  {pasta:'8890',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0064-11',cidade:'SAO PAULO',uf:'SP',licenca:'ALVARÁ',para:'FINS COMERCIAIS',operacao:'CONCESSAO INICIAL',protocolo:'2025-10-10',numero:'3544',expedicao:'2025-10-29',validade:'2027-12-31'},
+  {pasta:'8890',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0064-11',cidade:'SAO PAULO',uf:'SP',licenca:'VISTORIA',para:'',operacao:'CONCESSAO INICIAL',protocolo:'2025-10-10',numero:'1080',expedicao:'2025-10-29',validade:'2027-12-31'},
+  {pasta:'8891',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0056-01',cidade:'AMERICANA',uf:'SP',licenca:'ALVARÁ',para:'FINS COMERCIAIS',operacao:'CONCESSAO INICIAL',protocolo:'2025-10-07',numero:'698',expedicao:'2025-10-13',validade:'2025-12-31'},
+  {pasta:'8891',empresa:'VERISURE BRASIL MONITORAMENTO DE ALARMES S.A',cnpj:'11.660.106/0056-01',cidade:'AMERICANA',uf:'SP',licenca:'VISTORIA',para:'',operacao:'CONCESSAO INICIAL',protocolo:'2025-10-07',numero:'211',expedicao:'2025-10-13',validade:'2027-12-31'}
+  ].forEach(r=>b.set(doc(collection(db,'policia_civil')),r));
+  await b.commit();
+}
+
+init();
+</script>
+</body>
+</html>
